@@ -18,10 +18,30 @@ public:
 	// Sets default values for this actor's properties
 	ACellRenderer();
 	
+	virtual void BeginPlay() override;
+	
 	// Return ISMComponent
 	TObjectPtr<UInstancedStaticMeshComponent> GetISMComponent() const { return ISMComponent;}
+	
+	UFUNCTION(BlueprintCallable)
+	void SetAnimationEnabled(bool bAnimation);
+	
+	// Method to update Animation
+	UFUNCTION(BlueprintCallable)
+	void UpdateAnimation(float Value);
+	
+	// Method to change rotation animation
+	UFUNCTION(BlueprintCallable)
+	void ChangeUpdateAnimation();
 	
 protected:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UInstancedStaticMeshComponent> ISMComponent;
+	
+	bool m_IsAnimated = true;
+	
+	int32 m_CurrentRotation = 0;
+	
+	// Array of Rotations
+	TArray<FRotator, TInlineAllocator<4>> m_Rotations;
 };

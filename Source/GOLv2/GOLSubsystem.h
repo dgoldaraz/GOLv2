@@ -50,6 +50,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Simulation")
 	void SetAuto(bool bAuto) { bAutoSimulate = bAuto; };
 	
+	// Move forward one step
+	UFUNCTION(BlueprintCallable, Category = "Simulation")
+	void EnableAnimation(bool bAnimation);
+	
 	// Load an example
 	UFUNCTION(BlueprintCallable, Category = "Simulation")
 	void LoadExample(int32 rows, int32 cols, TArray<int> liveCells);

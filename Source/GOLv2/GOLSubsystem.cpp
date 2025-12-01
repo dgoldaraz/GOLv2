@@ -160,6 +160,14 @@ void UGOLSubsystem::Step()
 	GenerationNumber++;
 }
 
+void UGOLSubsystem::EnableAnimation(bool bAnimation)
+{
+	if (m_RenderActor)
+	{
+		m_RenderActor->SetAnimationEnabled(bAnimation);
+	}
+}
+
 void UGOLSubsystem::LoadExample(int32 rows, int32 cols, TArray<int> liveCells)
 {	
 	GridExtents.Set(rows, cols);
