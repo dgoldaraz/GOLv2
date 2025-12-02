@@ -26,6 +26,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetAnimationEnabled(bool bAnimation);
 	
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE bool GetAnimationEnabled() const {return m_IsAnimated;};
+	
 	// Method to update Animation
 	UFUNCTION(BlueprintCallable)
 	void UpdateAnimation(float Value);
@@ -35,8 +38,13 @@ public:
 	void ChangeUpdateAnimation();
 	
 protected:
+	
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UInstancedStaticMeshComponent> ISMComponent;
+	
+	// Value to rotate when animating
+	UPROPERTY(EditAnywhere)
+	float UpdateRotationValue = 30.0f;
 	
 	bool m_IsAnimated = true;
 	

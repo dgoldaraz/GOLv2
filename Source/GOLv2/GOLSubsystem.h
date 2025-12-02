@@ -50,9 +50,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Simulation")
 	void SetAuto(bool bAuto) { bAutoSimulate = bAuto; };
 	
-	// Move forward one step
+	// Set Animation Enabled
 	UFUNCTION(BlueprintCallable, Category = "Simulation")
 	void EnableAnimation(bool bAnimation);
+	
+	UFUNCTION(BlueprintCallable, Category = "Simulation")
+	bool GetEnableAnimation() const;
 	
 	// Load an example
 	UFUNCTION(BlueprintCallable, Category = "Simulation")
@@ -84,6 +87,8 @@ private:
 	bool IsValidIndex(int x, int y) const;
 	// Set Color based on value on cell
 	void SetColorAlive(int32 instanceIndex, TObjectPtr<UInstancedStaticMeshComponent> ISMcomponent, bool isAlive);
+	//Function to compute next cell
+	void ComputeNextCellState(int cellIndex);
 	
 public:
 	

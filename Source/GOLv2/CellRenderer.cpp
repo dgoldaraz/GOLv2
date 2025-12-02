@@ -23,10 +23,10 @@ void ACellRenderer::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	m_Rotations.Add(FRotator(45.0f, 0.0f, 0.0f));
-	m_Rotations.Add(FRotator(-45.0f, 0.0f, 0.0f));
-	m_Rotations.Add(FRotator(0.0f, 0.0f, 45.0f));
-	m_Rotations.Add(FRotator(0.0f, 0.0f, -45.0f));
+	m_Rotations.Add(FRotator(UpdateRotationValue, 0.0f, 0.0f));
+	m_Rotations.Add(FRotator(-UpdateRotationValue, 0.0f, 0.0f));
+	m_Rotations.Add(FRotator(0.0f, 0.0f, UpdateRotationValue));
+	m_Rotations.Add(FRotator(0.0f, 0.0f, -UpdateRotationValue));
 }
 
 void ACellRenderer::SetAnimationEnabled(bool bAnimation)

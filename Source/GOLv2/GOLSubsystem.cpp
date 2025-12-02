@@ -168,6 +168,15 @@ void UGOLSubsystem::EnableAnimation(bool bAnimation)
 	}
 }
 
+bool UGOLSubsystem::GetEnableAnimation() const
+{
+	if (m_RenderActor)
+	{
+		return m_RenderActor->GetAnimationEnabled();
+	}
+	return false;
+}
+
 void UGOLSubsystem::LoadExample(int32 rows, int32 cols, TArray<int> liveCells)
 {	
 	GridExtents.Set(rows, cols);
@@ -208,45 +217,50 @@ void UGOLSubsystem::ComputeNextStep()
 	m_ChangedInstances.Empty();
 	for (int cellIndex = 0; cellIndex < m_currentCellGrid.Num(); ++cellIndex)
 	{
-		// get neighbours and decide if cell is alive or not
-		bool isAlive = m_currentCellGrid[cellIndex];
-		int liveNeight = 0;
-		FVector2D cellPos = GetMatrixIndex(cellIndex);
-		for (int i = -1; i <=1; ++i)
+		ComputeNextCellState(cellIndex);
+	}
+}
+
+void UGOLSubsystem::ComputeNextCellState(int cellIndex)
+{
+	// get neighbours and decide if cell is alive or not
+	bool isAlive = m_currentCellGrid[cellIndex];
+	int liveNeight = 0;
+	FVector2D cellPos = GetMatrixIndex(cellIndex);
+	for (int i = -1; i <=1; ++i)
+	{
+		for (int j = -1; j <=1; ++j)
 		{
-			for (int j = -1; j <=1; ++j)
+			if (i == 0 && j == 0)
 			{
-				if (i == 0 && j == 0)
-				{
-					continue;
-				}
-				int cellX = cellPos.X + i;
-				int cellY = cellPos.Y + j;
-				if (IsValidIndex(cellX, cellY))
-				{
-					liveNeight += GetIsAlive(cellX, cellY);
-				}
+				continue;
+			}
+			int cellX = cellPos.X + i;
+			int cellY = cellPos.Y + j;
+			if (IsValidIndex(cellX, cellY))
+			{
+				liveNeight += GetIsAlive(cellX, cellY);
 			}
 		}
-		if (isAlive)
+	}
+	if (isAlive)
+	{
+		if (liveNeight < 2 || liveNeight > 3)
 		{
-			if (liveNeight < 2 || liveNeight > 3)
-			{
-				//change
-				m_bufferCellGrid[cellIndex] = false;
-				// double chek instance / cell 
-				m_ChangedInstances.Add(cellIndex);
-			}
+			//change
+			m_bufferCellGrid[cellIndex] = false;
+			// double chek instance / cell 
+			m_ChangedInstances.Add(cellIndex);
 		}
-		else
+	}
+	else
+	{
+		if (liveNeight == 3)
 		{
-			if (liveNeight == 3)
-			{
-				//change
-				m_bufferCellGrid[cellIndex] = true;
-				// double chek instance / cell 
-				m_ChangedInstances.Add(cellIndex);
-			}
+			//change
+			m_bufferCellGrid[cellIndex] = true;
+			// double chek instance / cell 
+			m_ChangedInstances.Add(cellIndex);
 		}
 	}
 }
@@ -269,7 +283,6 @@ void UGOLSubsystem::UpdateNextStep()
 	}
 }
 
-
 bool UGOLSubsystem::IsValidIndex(int x, int y) const
 {
 	return x >= 0 && y >= 0 && x < GridExtents.X && y < GridExtents.Y;
@@ -285,3 +298,4 @@ void UGOLSubsystem::SetColorAlive(int32 instanceIndex, TObjectPtr<UInstancedStat
 		ISMcomponent->SetCustomDataValue(instanceIndex, 2, color.B);
 	}
 }
+
