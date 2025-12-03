@@ -56,6 +56,8 @@ void UGOLSubsystem::InitCellGrid(TArray<int32> aliveCells)
 		m_bufferCellGrid[cellIndex] = true;
 	}
 	
+	m_ThreadNumber = FMath::Clamp(m_ThreadNumber, 1,  m_currentCellGrid.Num());
+	
 	// Ensure Render actor is created
 	if (ensureMsgf(m_RenderActor, TEXT("RenderActor should exists!")))
 	{
@@ -177,6 +179,14 @@ bool UGOLSubsystem::GetEnableAnimation() const
 	return false;
 }
 
+void UGOLSubsystem::SetThreads(int32 threads)
+{
+	if (threads > 0)
+	{
+		m_ThreadNumber = FMath::Min(threads, m_currentCellGrid.Num());
+	}
+}
+
 void UGOLSubsystem::LoadExample(int32 rows, int32 cols, TArray<int> liveCells)
 {	
 	GridExtents.Set(rows, cols);
@@ -214,10 +224,37 @@ TArray<int> UGOLSubsystem::GetAliveCellsArray() const
 
 void UGOLSubsystem::ComputeNextStep()
 {
+	QUICK_SCOPE_CYCLE_COUNTER(STAT_ComputeNextStep);
 	m_ChangedInstances.Empty();
-	for (int cellIndex = 0; cellIndex < m_currentCellGrid.Num(); ++cellIndex)
+	if (m_UseMultithreading)
 	{
-		ComputeNextCellState(cellIndex);
+		int32 numCells = m_currentCellGrid.Num() / m_ThreadNumber;
+		ParallelFor(m_ThreadNumber, [&](int32 index)
+		{
+			int32 startIndex = index * numCells;
+			for (int i = startIndex; i < startIndex + numCells; ++i)
+			{
+				ComputeNextCellState(i);
+			}
+		});
+		
+		// This way we use batches and create lots of threads, This might no be the best option, as per 
+		// https://forums.unrealengine.com/t/parallelfor-optimization/1680779/5, it's better to create less threads
+		// to do a lot of samll calculations that lots of threads for 1 simple task
+		// for (int i = 0; i < m_BatchNumber; ++i)
+		// {
+		// 	ParallelFor(numCells, [numCells, i, this](int32 index)
+		// 	{
+		// 		ComputeNextCellState(index + numCells * i );
+		// 	});
+		// }
+	}
+	else
+	{
+		for (int cellIndex = 0; cellIndex < m_currentCellGrid.Num(); ++cellIndex)
+		{
+			ComputeNextCellState(cellIndex);
+		}
 	}
 }
 
@@ -247,6 +284,7 @@ void UGOLSubsystem::ComputeNextCellState(int cellIndex)
 	{
 		if (liveNeight < 2 || liveNeight > 3)
 		{
+			FScopeLock Lock(&DataGuard);
 			//change
 			m_bufferCellGrid[cellIndex] = false;
 			// double chek instance / cell 
@@ -257,6 +295,7 @@ void UGOLSubsystem::ComputeNextCellState(int cellIndex)
 	{
 		if (liveNeight == 3)
 		{
+			FScopeLock Lock(&DataGuard);
 			//change
 			m_bufferCellGrid[cellIndex] = true;
 			// double chek instance / cell 

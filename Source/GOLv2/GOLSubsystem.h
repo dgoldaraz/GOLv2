@@ -54,8 +54,25 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Simulation")
 	void EnableAnimation(bool bAnimation);
 	
+	// Get if animation is enabled
 	UFUNCTION(BlueprintCallable, Category = "Simulation")
 	bool GetEnableAnimation() const;
+	
+	// Set Multithreading enabled
+	UFUNCTION(BlueprintCallable, Category = "Simulation")
+	FORCEINLINE void EnableMultiThreading(bool bMultithreading) { m_UseMultithreading = bMultithreading; };
+	
+	// Getter
+	UFUNCTION(BlueprintCallable, Category = "Simulation")
+	FORCEINLINE bool GetEnableMultithreading() const { return m_UseMultithreading; };
+	
+	// Set Multithreading threads to use
+	UFUNCTION(BlueprintCallable, Category = "Simulation")
+	FORCEINLINE void SetThreads(int32 threads);
+	
+	// Getter
+	UFUNCTION(BlueprintCallable, Category = "Simulation")
+	FORCEINLINE int32 GetThreads() const { return m_ThreadNumber; };
 	
 	// Load an example
 	UFUNCTION(BlueprintCallable, Category = "Simulation")
@@ -134,4 +151,12 @@ private:
 	// Render Class to use
 	UPROPERTY(Transient)
 	TSubclassOf<ACellRenderer> CellRendererClass;
+	
+	// Flag to use multithreading calculations
+	bool m_UseMultithreading = false;
+	// Number of threads to use
+	int32 m_ThreadNumber = 6;
+	
+	// Marked as mutable as it's often warranted by design
+	mutable FCriticalSection DataGuard;
 };
