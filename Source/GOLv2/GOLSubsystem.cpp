@@ -48,12 +48,10 @@ void UGOLSubsystem::InitCellGrid(TArray<int32> aliveCells)
 {
 	// Init cell state base on grid
 	m_currentCellGrid.Init(false, GridExtents.X * GridExtents.Y);
-	m_bufferCellGrid.Init(false, GridExtents.X * GridExtents.Y);
 	
 	for (int32 cellIndex : aliveCells)
 	{
 		m_currentCellGrid[cellIndex] = true;
-		m_bufferCellGrid[cellIndex] = true;
 	}
 	
 	m_ThreadNumber = FMath::Clamp(m_ThreadNumber, 1,  m_currentCellGrid.Num());
@@ -147,7 +145,6 @@ void UGOLSubsystem::ChangeState(int32 index)
 	if (m_currentCellGrid.IsValidIndex(index))
 	{
 		m_currentCellGrid[index] = !m_currentCellGrid[index];
-		m_bufferCellGrid[index] = !m_bufferCellGrid[index];
 		if (UInstancedStaticMeshComponent* ISMC = m_RenderActor->GetISMComponent())
 		{
 			SetColorAlive(index, ISMC, m_currentCellGrid[index]);
@@ -285,9 +282,7 @@ void UGOLSubsystem::ComputeNextCellState(int cellIndex)
 		if (liveNeight < 2 || liveNeight > 3)
 		{
 			FScopeLock Lock(&DataGuard);
-			//change
-			m_bufferCellGrid[cellIndex] = false;
-			// double chek instance / cell 
+			// save change on cell
 			m_ChangedInstances.Add(cellIndex);
 		}
 	}
@@ -296,9 +291,7 @@ void UGOLSubsystem::ComputeNextCellState(int cellIndex)
 		if (liveNeight == 3)
 		{
 			FScopeLock Lock(&DataGuard);
-			//change
-			m_bufferCellGrid[cellIndex] = true;
-			// double chek instance / cell 
+			// Save change on cell
 			m_ChangedInstances.Add(cellIndex);
 		}
 	}
@@ -306,7 +299,6 @@ void UGOLSubsystem::ComputeNextCellState(int cellIndex)
 
 void UGOLSubsystem::UpdateNextStep()
 {
-	Swap(m_currentCellGrid,m_bufferCellGrid);
 	
 	if (IsValid(m_RenderActor))
 	{
@@ -315,8 +307,12 @@ void UGOLSubsystem::UpdateNextStep()
 			for (int i : m_ChangedInstances)
 			{
 				int32 index = m_instanceArrayMap[i];
+				{
+					// Not really needed at this point, however if we got a sepatarion between reading/writing on the buffer this saves the access
+					FScopeLock Lock(&DataGuard);
+					m_currentCellGrid[index] = !m_currentCellGrid[index];
+				}
 				SetColorAlive(index, ISMC, m_currentCellGrid[i]);
-				m_bufferCellGrid[index] = !m_bufferCellGrid[index];
 			}
 		}
 	}

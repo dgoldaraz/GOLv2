@@ -132,9 +132,6 @@ private:
 	// Array of 0/1 values
 	TArray<bool> m_currentCellGrid; 
 	
-	// Array of 0/1 values
-	TArray<bool> m_bufferCellGrid; 
-	
 	// store arrayIndex <-> instance id 
 	TMap<int, int32> m_instanceArrayMap;
 	
